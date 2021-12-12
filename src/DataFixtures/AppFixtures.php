@@ -82,7 +82,7 @@ class AppFixtures extends Fixture
         for ($i = 1; $i <= 5; $i++) {
             $mission = new Mission();
             $priority = array("Low", "Medium", "High");
-            $status = array("To review", "In progress", "Done", "To do");
+            $status = array("To validate", "In progress", "Done", "To do");
             $mission->setName('mission' . $i);
             $mission->setDescription('description' . $i);
             $mission->setDate(new \DateTime('now'));
