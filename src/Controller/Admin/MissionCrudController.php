@@ -95,9 +95,7 @@ class MissionCrudController extends AbstractCrudController
         return $actions->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
             $data = $this;
             return $action->displayIf(static function ($mission) use ($data) {
-                if (in_array('ROLE_SUPER_HERO', $data->getUser()->getRoles())) {
-                    return true;
-                } else {
+                if (!in_array('ROLE_SUPER_HERO', $data->getUser()->getRoles())) {
                     return $mission->getStatut() == 'To validate';
                 }
             });
