@@ -4,23 +4,21 @@ namespace App\Controller\Admin;
 
 use App\Entity\Mission;
 use App\Repository\UserRepository;
-use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
-use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
-use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
-use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository;
 
 class MissionCrudController extends AbstractCrudController
 {
@@ -48,6 +46,7 @@ class MissionCrudController extends AbstractCrudController
         return [
             TextField::new('name'),
             TextEditorField::new('description'),
+            TextField::new('client')->hideOnForm(),
             ChoiceField::new('statut')->setChoices(
                 [
                     'To validate' => 'To validate',
@@ -75,6 +74,19 @@ class MissionCrudController extends AbstractCrudController
         ];
     }
 
+    public function createIndexQueryBuilder(SearchDto $searchDto, EntityDto $entityDto, FieldCollection $fields, FilterCollection $filters): QueryBuilder
+    {
+        $entityRepository = $this->get(EntityRepository::class)->createQueryBuilder($searchDto, $entityDto, $fields, $filters);
+        if (in_array('ROLE_CLIENT' , $this->getUser()->getRoles())) {
+            $entityRepository->where('entity.client = :client');
+            $entityRepository->setParameter('client', $this->getUser());
+        } else if(in_array('ROLE_SUPER_HERO', $this->getUser()->getRoles())) {
+            $entityRepository->where('entity.statut != :statut');
+            $entityRepository->setParameter('statut', 'To validate');
+        }
+        return $entityRepository;
+    }
+
     public function configureActions(Actions $actions): Actions
     {
         return $actions->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
@@ -90,7 +102,8 @@ class MissionCrudController extends AbstractCrudController
             return $action->displayIf(static function ($entity) {
                 return in_array($entity->getStatut(), ['To validate', 'To do']);
             });
-        })->setPermission(Action::NEW, 'ROLE_CLIENT');
+        })->setPermission(Action::NEW, 'ROLE_CLIENT')
+          ->setPermission(Action::DELETE, 'ROLE_CLIENT');
     }
 
 }
