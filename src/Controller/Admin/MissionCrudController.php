@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Mission;
+use App\Repository\MissionRepository;
 use App\Repository\UserRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -71,9 +72,7 @@ class MissionCrudController extends AbstractCrudController
             AssociationField::new('wicked'),
             AssociationField::new('hero')->setFormTypeOptions([
                 'query_builder' => function (UserRepository $userRepository) {
-                    return $userRepository->createQueryBuilder('a')
-                                          ->where('a.roles LIKE :role')
-                                          ->setParameter('role', '%"' . 'ROLE_SUPER_HERO' . '"%');
+                    return $userRepository->getOnlyHeroes();
                 },]),
         ];
     }
