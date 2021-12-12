@@ -22,6 +22,10 @@ class UserCrudController extends AbstractCrudController
         return User::class;
     }
 
+    public function __construct(EntityRepository $entityRepository) {
+        $this->entityRepository = $entityRepository;
+    }
+
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->renderContentMaximized();
@@ -38,7 +42,7 @@ class UserCrudController extends AbstractCrudController
 
     public function createIndexQueryBuilder(SearchDto $searchDto, EntityDto $entityDto, FieldCollection $fields, FilterCollection $filters): QueryBuilder
     {
-        $entityRepository = $this->get(EntityRepository::class)->createQueryBuilder($searchDto, $entityDto, $fields, $filters);
+        $entityRepository = $this->entityRepository->createQueryBuilder($searchDto, $entityDto, $fields, $filters);
         if (!in_array('ROLE_ADMIN' , $this->getUser()->getRoles())) {
             $entityRepository->where('entity.id = :id');
             $entityRepository->setParameter('id', $this->getUser());

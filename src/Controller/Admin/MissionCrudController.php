@@ -27,6 +27,10 @@ class MissionCrudController extends AbstractCrudController
         return Mission::class;
     }
 
+    public function __construct(EntityRepository $entityRepository) {
+        $this->entityRepository = $entityRepository;
+    }
+
     public function createEntity(string $entityFqcn)
     {
         $user = $this->getUser();
@@ -76,7 +80,7 @@ class MissionCrudController extends AbstractCrudController
 
     public function createIndexQueryBuilder(SearchDto $searchDto, EntityDto $entityDto, FieldCollection $fields, FilterCollection $filters): QueryBuilder
     {
-        $entityRepository = $this->get(EntityRepository::class)->createQueryBuilder($searchDto, $entityDto, $fields, $filters);
+        $entityRepository = $this->entityRepository->createQueryBuilder($searchDto, $entityDto, $fields, $filters);
         if (in_array('ROLE_CLIENT' , $this->getUser()->getRoles())) {
             $entityRepository->where('entity.client = :client');
             $entityRepository->setParameter('client', $this->getUser());
