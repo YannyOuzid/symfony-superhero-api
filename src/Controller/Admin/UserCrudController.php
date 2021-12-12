@@ -12,6 +12,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Orm\EntityRepository;
 
@@ -22,7 +23,8 @@ class UserCrudController extends AbstractCrudController
         return User::class;
     }
 
-    public function __construct(EntityRepository $entityRepository) {
+    public function __construct(EntityRepository $entityRepository)
+    {
         $this->entityRepository = $entityRepository;
     }
 
@@ -33,17 +35,28 @@ class UserCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        return [
+        $form = [
             TextField::new('email'),
             TextField::new('name'),
-            TextField::new('password')->hideOnIndex()
+            TextField::new('password')->hideOnIndex(),
         ];
+
+        if (in_array('ROLE_ADMIN', $this->getUser()->getRoles())) {
+           $form[] = ChoiceField::new('roles')->setChoices(
+               [
+                   'admin' => 'ROLE_ADMIN',
+                   'Hero' => 'ROLE_SUPER_HERO',
+                   'Client' => 'ROLE_CLIENT'
+               ],
+           )->allowMultipleChoices();
+        }
+        return $form;
     }
 
     public function createIndexQueryBuilder(SearchDto $searchDto, EntityDto $entityDto, FieldCollection $fields, FilterCollection $filters): QueryBuilder
     {
         $entityRepository = $this->entityRepository->createQueryBuilder($searchDto, $entityDto, $fields, $filters);
-        if (!in_array('ROLE_ADMIN' , $this->getUser()->getRoles())) {
+        if (!in_array('ROLE_ADMIN', $this->getUser()->getRoles())) {
             $entityRepository->where('entity.id = :id');
             $entityRepository->setParameter('id', $this->getUser());
         }

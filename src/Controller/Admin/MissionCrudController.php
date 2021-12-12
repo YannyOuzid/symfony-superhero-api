@@ -94,20 +94,20 @@ class MissionCrudController extends AbstractCrudController
     {
         return $actions->update(Crud::PAGE_INDEX, Action::EDIT, function (Action $action) {
             $data = $this;
-            return $action->displayIf(static function ($entity) use ($data) {
+            return $action->displayIf(static function ($mission) use ($data) {
                 if (in_array('ROLE_SUPER_HERO', $data->getUser()->getRoles())) {
                     return true;
                 } else {
-                    return $entity->getStatut() == 'To validate';
+                    return $mission->getStatut() == 'To validate';
                 }
             });
         })->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
             $data = $this;
-            return $action->displayIf(static function ($entity) use ($data){
+            return $action->displayIf(static function ($mission) use ($data){
                 if (in_array('ROLE_CLIENT', $data->getUser()->getRoles())) {
-                    return $entity->getStatut() == 'To validate' || $entity->getStatut() == 'To do';
+                    return $mission->getStatut() == 'To validate' || $mission->getStatut() == 'To do';
                 } else {
-                    return $entity->getStatut() == 'To validate';
+                    return $mission->getStatut() == 'To validate';
                 }
             });
         })->setPermission(Action::NEW, 'ROLE_CLIENT');
